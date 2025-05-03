@@ -1,6 +1,6 @@
 require './classes/token.rb'
 
-class RecursiveDescentParser
+class RecursiveDescentParserMath
   def initialize(tokens)
     @tokens = tokens
     @position = 0

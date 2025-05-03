@@ -1,6 +1,6 @@
 require './classes/token.rb'
 
-class Lexer
+class LexerMath
   def initialize(input)
     @input = input
     @position = 0
