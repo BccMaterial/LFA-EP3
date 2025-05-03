@@ -7,20 +7,20 @@ class RecursiveDescentParserMath
   end
 
   def parse
-    expr
+    return expr
   end
 
   private
 
   def current_token
-    @tokens[@position]
+    return @tokens[@position]
   end
 
   def eat(expected_type)
     if current_token&.type == expected_type
       token = current_token
       @position += 1
-      token
+      return token
     else
       raise "Unexpected token: #{current_token}, expected #{expected_type}"
     end
@@ -32,16 +32,25 @@ class RecursiveDescentParserMath
       op = eat(current_token.type)
       node = [op.type, node, term]
     end
-    node
+    return node
   end
 
   def term
-    node = factor
+    node = power
     while current_token&.type == :MUL || current_token&.type == :DIV
+      op = eat(current_token.type)
+      node = [op.type, node, power]
+    end
+    return node
+  end
+
+  def power
+    node = factor
+    while current_token&.type == :POW
       op = eat(current_token.type)
       node = [op.type, node, factor]
     end
-    node
+    return node
   end
 
   def factor
@@ -51,9 +60,10 @@ class RecursiveDescentParserMath
       eat(:LPAREN)
       result = expr
       eat(:RPAREN)
-      result
+      return result
     else
       raise "Unexpected token in factor: #{current_token}"
     end
   end
 end
+

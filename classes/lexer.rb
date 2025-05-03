@@ -26,6 +26,9 @@ class LexerMath
       when '/'
         tokens << Token.new(:DIV, '/')
         advance
+      when '^'
+        tokens << Token.new(:POW, '^')
+        advance
       when '('
         tokens << Token.new(:LPAREN, '(')
         advance
@@ -42,7 +45,7 @@ class LexerMath
   private
 
   def current_char
-    @input[@position]
+    return @input[@position]
   end
 
   def advance
@@ -52,6 +55,100 @@ class LexerMath
   def number
     start = @position
     advance while current_char =~ /\d/
-    Token.new(:NUMBER, @input[start...@position].to_i)
+    return Token.new(:NUMBER, @input[start...@position].to_i)
   end
 end
+
+class LexerJson
+  def initialize(input)
+    @input = input
+    @position = 0
+  end
+
+  def tokenize
+    tokens = []
+    while current_char
+      case current_char
+      when '"'
+        tokens << string
+      when /\s/
+        advance
+      when /\d/
+        tokens << number
+      when '$'
+        tokens << math
+      when 't'
+        tokens << boolean
+      when 'f'
+        tokens << boolean
+      when 'n'
+        tokens << null
+      when ','
+        tokens << Token.new(:COMMA, ',')
+        advance
+      when ':'
+        tokens << Token.new(:COLON, ':')
+        advance
+      when '{'
+        tokens << Token.new(:LBRACE, '{')
+        advance
+      when '}'
+        tokens << Token.new(:RBRACE, '}')
+        advance
+      when '['
+        tokens << Token.new(:LBRACKET, '[')
+        advance
+      when ']'
+        tokens << Token.new(:RBRACKET, ']')
+        advance
+      else
+        raise "Unexpected character: #{current_char}"
+      end
+    end
+    return tokens
+  end
+
+  private
+
+  def current_char
+    @input[@position]
+  end
+
+  def advance
+    @position += 1
+  end
+
+  def math
+    start = @position
+    advance while current_char !~ '$'
+    advance
+    return Token.new(:MATH, @input[start...@position])
+  end
+
+  def string
+    start = @position
+    advance while current_char !~ '"'
+    advance
+    return Token.new(:STRING, @input[start...@position])
+  end
+
+  def boolean
+    start = @position
+    advance while current_char !~ 'e'
+    advance
+    return Token.new(:BOOLEAN, @input[start...@position] == 'true')
+  end
+
+  def null
+    advance while current_char !~ 'l'
+    advance
+    return Token.new(:NULL, nil)
+  end
+
+  def number
+    start = @position
+    advance while current_char =~ /\d/
+    return Token.new(:NUMBER, @input[start...@position].to_i)
+  end
+end
+
