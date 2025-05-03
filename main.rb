@@ -7,4 +7,5 @@ tokens = lexer.tokenize
 parser = RecursiveDescentParserMath.new(tokens)
 ast = parser.parse
 
+puts "INPUT: #{input}"
 puts "AST: #{ast.inspect}"
