@@ -1,11 +1,11 @@
 require './classes/lexer.rb'
 require './classes/parser.rb'
 
-input = "2 + 3 * (4 - 1)"
-lexer = LexerMath.new(input)
+input = '{ "id": 1, "name": "thiago", "properties": { "isEnabled": true, "labels": ["Teste"], "teste": null, "age": $20 + 1$ } }'
+lexer = LexerJson.new(input)
 tokens = lexer.tokenize
-parser = RecursiveDescentParserMath.new(tokens)
-ast = parser.parse
+json = RecursiveDescentParserJson.new(tokens)
+object = json.parse
 
 puts "INPUT: #{input}"
-puts "AST: #{ast.inspect}"
+puts "RUBY FORMAT: #{object}"
