@@ -10,6 +10,11 @@ class RecursiveDescentParserMath
     return expr
   end
 
+  def evaluate
+    ast = parse  # Gera a AST (Abstract Syntax Tree)
+    calculate(ast)  # Calcula o resultado
+  end
+
   private
 
   def current_token
@@ -65,76 +70,134 @@ class RecursiveDescentParserMath
       raise "Unexpected token in factor: #{current_token}"
     end
   end
+
+  def calculate(node)
+    if node.is_a?(Numeric)  # Se for um número, retorna direto
+      node
+    elsif node.is_a?(Array)  # Se for uma operação, resolve recursivamente
+      left = calculate(node[1])
+      right = calculate(node[2])
+
+      case node[0]
+      when :PLUS then left + right
+      when :MINUS then left - right
+      when :MUL then left * right
+      when :DIV then left / right
+      when :POW then left ** right
+      else
+        raise "Unknown operator: #{node[:op]}"
+      end
+    else
+      raise "Invalid node: #{node}"
+    end
+  end
 end
 
 class RecursiveDescentParserJson
-  # Vem primeiro: Primitivo, Lista ou Objeto
-  # Dentro de objeto:
-  #   Vem primeiro: STRING
-  #   Vem segundo: COLON
-  #   Vem terceiro: Primitivo
-  #   Vem quarto: COMMA
-  # Dentro de lista:
-  #   Vem primeiro: Primitivo
-  #   Vem segundo: COMMA
-  #   Vem terceiro: Primitivo
-  #   .
-  #   .
-  #   .
-  #   Vem último: RBRACKET
-   
   def initialize(tokens)
     @tokens = tokens
     @position = 0
+    @math_parser = RecursiveDescentParserMath.new([]) # Para parsear expressões MATH
+    @math_lexer = LexerMath.new([])
   end
 
   def parse
-    return expr
+    json_value
   end
 
   private
 
   def current_token
-    return @tokens[@position]
+    @tokens[@position]
   end
 
   def eat(expected_type)
     if current_token&.type == expected_type
       token = current_token
       @position += 1
-      return token
+      token
     else
       raise "Unexpected token: #{current_token}, expected #{expected_type}"
     end
   end
 
-  def list
-  end
-
-  def item
-  end
-
-  def object
-  end
-
-  def field
-  end
-
-  def factor
-    if current_token.type in [:STRING, :BOOLEAN, :NULL, :NUMBER, :MATH]
-      eat(current_token.type).value
-    elsif current_token.type == :LBRACE
-      eat(:LBRACE)
-      result = expr
-      eat(:RBRACE)
-      return result
-    elsif current_token.type == :LBRACKET
-      eat(:LBRACKET)
-      result = expr
-      eat(:RBRACKET)
-      return result
+  def json_value
+    case current_token&.type
+    when :LBRACE then json_object
+    when :LBRACKET then json_array
+    when :STRING, :NUMBER, :BOOLEAN, :NULL, :MATH then primitive_value
     else
-      raise "Unexpected token in factor: #{current_token}"
+      raise "Unexpected token in json_value: #{current_token}"
+    end
+  end
+
+  def json_object
+    eat(:LBRACE)
+    obj = {}
+
+    # Objeto vazio
+    if current_token&.type == :RBRACE
+      eat(:RBRACE)
+      return obj
+    end
+
+    # Primeiro campo
+    key = eat(:STRING).value
+    eat(:COLON)
+    value = json_value
+    obj[key] = value
+
+    # Próximos campos
+    while current_token&.type == :COMMA
+      eat(:COMMA)
+      key = eat(:STRING).value
+      eat(:COLON)
+      value = json_value
+      obj[key] = value
+    end
+
+    eat(:RBRACE)
+    obj
+  end
+
+  def json_array
+    eat(:LBRACKET)
+    arr = []
+
+    # Array vazio
+    if current_token&.type == :RBRACKET
+      eat(:RBRACKET)
+      return arr
+    end
+
+    # Primeiro elemento
+    arr << json_value
+
+    # Elementos restantes
+    while current_token&.type == :COMMA
+      eat(:COMMA)
+      arr << json_value
+    end
+
+    eat(:RBRACKET)
+    arr
+  end
+
+  def primitive_value
+    case current_token&.type
+    when :STRING then eat(:STRING).value
+    when :NUMBER then eat(:NUMBER).value
+    when :BOOLEAN then eat(:BOOLEAN).value == 'true'
+    when :NULL then eat(:NULL); nil
+    when :MATH
+      math_expr = eat(:MATH).value
+      math_tokens = LexerMath.new(math_expr).tokenize
+      math_parser = RecursiveDescentParserMath.new(math_tokens)
+      math_parser.instance_variable_set(:@tokens, math_tokens)
+      math_parser.instance_variable_set(:@position, 0)
+      math_parser.evaluate
+    else
+      raise "Unexpected primitive value: #{current_token}"
     end
   end
 end
