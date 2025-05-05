@@ -97,8 +97,6 @@ class RecursiveDescentParserJson
   def initialize(tokens)
     @tokens = tokens
     @position = 0
-    @math_parser = RecursiveDescentParserMath.new([]) # Para parsear expressões MATH
-    @math_lexer = LexerMath.new([])
   end
 
   def parse
