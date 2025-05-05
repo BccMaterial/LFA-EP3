@@ -54,8 +54,8 @@ class LexerMath
 
   def number
     start = @position
-    advance while current_char =~ /\d/
-    return Token.new(:NUMBER, @input[start...@position].to_i)
+    advance while current_char =~ /\d|\./
+    return Token.new(:NUMBER, @input[start...@position].to_f)
   end
 end
 
@@ -150,8 +150,8 @@ class LexerJson
 
   def number
     start = @position
-    advance while current_char =~ /\d/
-    return Token.new(:NUMBER, @input[start...@position].to_i)
+    advance while current_char =~ /\d|\./
+    return Token.new(:NUMBER, @input[start...@position].to_f)
   end
 end
 
