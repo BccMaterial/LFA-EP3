@@ -191,8 +191,6 @@ class RecursiveDescentParserJson
       math_expr = eat(:MATH).value
       math_tokens = LexerMath.new(math_expr).tokenize
       math_parser = RecursiveDescentParserMath.new(math_tokens)
-      math_parser.instance_variable_set(:@tokens, math_tokens)
-      math_parser.instance_variable_set(:@position, 0)
       math_parser.evaluate
     else
       raise "Unexpected primitive value: #{current_token}"
