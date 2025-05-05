@@ -85,7 +85,7 @@ class RecursiveDescentParserMath
       when :DIV then left / right
       when :POW then left ** right
       else
-        raise "Unknown operator: #{node[:op]}"
+        raise "Unknown operator: #{node[0]}"
       end
     else
       raise "Invalid node: #{node}"
