@@ -69,14 +69,14 @@ class LexerJson
     tokens = []
     while current_char
       case current_char
-      when '"'
+      when /"/
         tokens << string
       when /\s/
         advance
-      when /\d/
-        tokens << number
       when '$'
         tokens << math
+      when /\d/
+        tokens << number
       when 't'
         tokens << boolean
       when 'f'
@@ -102,7 +102,7 @@ class LexerJson
         tokens << Token.new(:RBRACKET, ']')
         advance
       else
-        raise "Unexpected character: #{current_char}"
+        raise "Unexpected character: #{current_char} (Position: #{@position})"
       end
     end
     return tokens
@@ -119,28 +119,31 @@ class LexerJson
   end
 
   def math
-    start = @position
-    advance while current_char !~ '$'
     advance
-    return Token.new(:MATH, @input[start...@position])
+    start = @position
+    advance while current_char != '$'
+    advance
+    return Token.new(:MATH, @input[start...@position-1])
   end
 
   def string
-    start = @position
-    advance while current_char !~ '"'
     advance
-    return Token.new(:STRING, @input[start...@position])
+    start = @position
+    advance while current_char != '"'
+    advance
+    return Token.new(:STRING, @input[start...@position-1])
   end
 
   def boolean
     start = @position
-    advance while current_char !~ 'e'
+    advance while current_char != 'e'
     advance
     return Token.new(:BOOLEAN, @input[start...@position] == 'true')
   end
 
   def null
-    advance while current_char !~ 'l'
+    advance while current_char != 'l'
+    advance
     advance
     return Token.new(:NULL, nil)
   end
