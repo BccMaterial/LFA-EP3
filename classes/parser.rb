@@ -59,13 +59,18 @@ class RecursiveDescentParserMath
   end
 
   def factor
-    if current_token.type == :NUMBER
+    if current_token&.type == :PLUS || current_token&.type == :MINUS
+      # Handle unary operators
+      op = eat(current_token.type)
+      value = factor
+      op.type == :MINUS ? -value : value
+    elsif current_token&.type == :NUMBER
       eat(:NUMBER).value
-    elsif current_token.type == :LPAREN
+    elsif current_token&.type == :LPAREN
       eat(:LPAREN)
       result = expr
       eat(:RPAREN)
-      return result
+      result
     else
       raise "Unexpected token in factor: #{current_token}"
     end
@@ -80,7 +85,7 @@ class RecursiveDescentParserMath
 
       case node[0]
       when :PLUS then left + right
-      when :MINUS then left - right
+      when :MINUS then left + (right*(-1))
       when :MUL then left * right
       when :DIV then left / right
       when :POW then left ** right
