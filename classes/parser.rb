@@ -59,11 +59,10 @@ class RecursiveDescentParserMath
   end
 
   def factor
-    if current_token&.type == :PLUS || current_token&.type == :MINUS
-      # Handle unary operators
+    if current_token&.type == :MINUS
       op = eat(current_token.type)
       value = factor
-      op.type == :MINUS ? -value : value
+      -value
     elsif current_token&.type == :NUMBER
       eat(:NUMBER).value
     elsif current_token&.type == :LPAREN
